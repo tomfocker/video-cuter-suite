@@ -1,0 +1,59 @@
+services:
+  asr:
+    build:
+      context: ../yunyinshibie
+      dockerfile: Dockerfile
+    image: funasr-server:bundle
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      CW_HOST: 0.0.0.0
+      CW_PORT: 8000
+      CW_DATA_DIR: /data
+      CW_AUTO_DOWNLOAD_MODEL: "1"
+      CW_VULKAN_ENABLE: "0"
+      CW_DML_ENABLE: "0"
+    volumes:
+      - ./.docker-data/asr:/data
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ../cut
+      dockerfile: Dockerfile
+    image: videocuter-web:bundle
+    restart: unless-stopped
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/ >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  gateway:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      asr:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    ports:
+      - "${CUT_HTTP_PORT:-18080}:8080"
+      - "${FUNASR_HTTP_PORT:-18000}:18000"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
