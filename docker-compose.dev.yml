@@ -1,0 +1,21 @@
+services:
+  asr:
+    build:
+      context: ../yunyinshibie
+      dockerfile: Dockerfile
+    image: funasr-server:bundle-dev
+    pull_policy: never
+
+  frontend:
+    build:
+      context: ../cut
+      dockerfile: Dockerfile
+    image: videocuter-web:bundle-dev
+    pull_policy: never
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: video-cuter-suite-gateway:bundle-dev
+    pull_policy: never
