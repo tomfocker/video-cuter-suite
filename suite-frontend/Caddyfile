@@ -1,5 +1,0 @@
-:8000 {
-  encode gzip
-  root * /srv
-  file_server
-}

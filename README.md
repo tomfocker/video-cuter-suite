@@ -1,41 +1,41 @@
 # Video Cuter Suite
 
-一个面向最终用户的整合发布仓库，目标是把下面三部分组合成真正开箱即用的一套服务：
+一个面向最终用户的整合发布仓库，用来把下面三部分组合成开箱即用的一套服务：
 
-- `video-cuter-suite-web`：带识别/字幕/文字选区能力的整合版前端
+- `video-cuter-full`：`video-cuter` 仓库中的完整版前端
 - `funasr-server`：独立运行的 FunASR HTTP 识别服务
 - `gateway`：统一入口、同源代理、容器互联出口
 
-## ✨ 这是什么
+## ✨ 仓库定位
 
-这个仓库不是主业务源码仓库，而是一个“整合与发布仓库”。
+这个仓库现在只负责：
 
-它主要负责两件事：
+1. 提供可以直接启动的 `docker compose` 配置
+2. 提供 gateway 统一入口
+3. 统一发布整合部署所需镜像
 
-1. 提供一份可以直接启动的 `docker compose` 配置
-2. 统一发布整套镜像到 Docker Hub
+它不再维护前端源码本身。
 
-如果你只想维护纯前端剪辑能力，请去 `video-cuter` 仓库。  
-如果你只想维护语音识别服务，请去 `funasr-server` 仓库。  
-如果你想一条命令把完整体验跑起来，用这个仓库就对了。
+前端源码维护位置：
 
-这里还有一个重要区别：
+- 纯净版前端：[`video-cuter` 根目录](https://github.com/tomfocker/video-cuter)
+- 完整版前端：[`video-cuter/full`](https://github.com/tomfocker/video-cuter/tree/main/full)
 
-- `video-cuter` 仓库保持纯前端、纯浏览器能力
-- 本仓库内置 `suite-frontend`，专门恢复整合版所需的识别、字幕下载、文字选区裁剪等能力
+这样以后如果你要改网页版功能，只需要去 `video-cuter` 一个仓库，不会再分散在多个项目里。
 
-这样可以同时兼顾“职责边界清晰”和“整合版体验完整”。
+## 🧩 为什么保留 gateway
 
-## 🧩 为什么默认保留 gateway
+`gateway` 负责提供统一入口：
 
-`gateway` 的作用不是新增一套业务，而是提供一个“统一入口”：
+- 浏览器用户只访问一个地址：`http://localhost:18080/`
+- 前端页面同源调用 `/v1/audio/transcriptions`
+- 其他工具或容器可以走固定暴露端口：`18000`
+- 后续加 HTTPS、鉴权、限流也有统一落点
 
-- 浏览器用户只需要访问一个地址：`http://localhost:18080/`
-- 前端页面可以同源调用 `/v1/audio/transcriptions`
-- 其他容器或脚本也可以走固定的 ASR 暴露端口：`18000`
-- 后续如果要加 HTTPS、鉴权、限流、上传大小限制，也有统一落点
+也就是说：
 
-没有 gateway 也能跑，但会让用户同时面对前端地址和后端地址，还要考虑跨域、代理和部署说明。对于整合版产品来说，带上 gateway 更适合交付。
+- `18080` 面向浏览器
+- `18000` 面向程序和其他容器
 
 ## 🏗️ 默认架构
 
@@ -50,18 +50,16 @@ gateway (:18080 / :18000)
   +--> frontend (:8000)
 ```
 
-路由规则如下：
+路由说明：
 
-- `http://localhost:18080/` -> 前端页面
+- `http://localhost:18080/` -> 完整版前端页面
 - `http://localhost:18080/healthz` -> 后端健康检查
 - `http://localhost:18080/v1/audio/transcriptions` -> 后端识别接口
 - `http://localhost:18080/api/transcriptions` -> 后端兼容接口
 - `http://localhost:18080/api/asr/*` -> 后端兼容接口
-- `http://localhost:18000/*` -> 直接暴露给其他工具/容器调用的后端入口
+- `http://localhost:18000/*` -> 后端直连入口
 
 ## 🚀 开箱即用
-
-### 方式一：直接使用本仓库
 
 ```bash
 git clone https://github.com/tomfocker/video-cuter-suite.git
@@ -76,9 +74,9 @@ docker compose up -d
 - 同源识别接口：`http://localhost:18080/v1/audio/transcriptions`
 - 后端直连入口：`http://localhost:18000/v1/audio/transcriptions`
 
-### 方式二：直接复制这份最小可用配置
+## 🧪 最小 compose 示例
 
-如果你不想克隆整个仓库，也可以直接使用下面这份 `compose.yaml`：
+如果你只想复制最小配置，也可以直接使用：
 
 ```yaml
 services:
@@ -98,7 +96,7 @@ services:
       - ./.docker-data/asr:/data
 
   frontend:
-    image: tomfocker/video-cuter-suite-web:latest
+    image: tomfocker/video-cuter-full:latest
     restart: unless-stopped
     expose:
       - "8000"
@@ -114,42 +112,27 @@ services:
       - "18000:18000"
 ```
 
-保存后执行：
-
-```bash
-docker compose up -d
-```
-
 ## 📦 模型策略
 
-默认推荐策略是：
+默认推荐：
 
-- 主镜像不内置模型
-- 第一次启动时自动下载模型
-- 模型落在可持久化目录里，后续重启不重复下载
+- 镜像不内置模型
+- 第一次启动自动下载
+- 模型持久化保存在 `./.docker-data/asr/`
 
-这样做的优点：
+优点：
 
 - 镜像更轻
 - 拉取更快
-- 升级镜像时不用重复搬运模型
-- 模型和服务镜像可以分别管理
+- 升级服务时不用重复搬运模型
 
-当前默认围绕单一模型展开：
+当前默认只围绕单模型：
 
 - `Fun-ASR-Nano-GGUF`
 
-这符合本项目“先把一个最合适的模型做稳”的目标。
+## 💾 本地模型挂载
 
-## 💾 自动下载与本地模型
-
-默认情况下，模型会下载到：
-
-```text
-./.docker-data/asr/
-```
-
-如果你已经手动下载好了模型，推荐目录结构如下：
+如果你已经下载好了模型，推荐目录：
 
 ```text
 ./models/Fun-ASR-Nano-GGUF/
@@ -162,60 +145,29 @@ cp .env.example .env
 docker compose -f docker-compose.yml -f docker-compose.local-model.yml up -d
 ```
 
-这个覆盖文件会：
-
-- 关闭自动下载
-- 将本地模型目录挂载进容器
-- 直接让 `funasr-server` 使用本地模型
-
-相关文件：
-
-- [docker-compose.local-model.yml](/Users/andy/Code/cut-funasr-bundle/docker-compose.local-model.yml)
-
 ## 🔌 其他容器怎么调用识别服务
 
-### 同一个 Compose 项目内
+### 同一个 Compose 网络内
 
-如果调用方也在同一个 Compose 网络里，推荐直接访问：
+推荐直接访问：
 
 ```text
 http://asr:8000/v1/audio/transcriptions
 ```
 
-这条链路最直接，少一层代理。
+### 宿主机或独立 Compose 项目
 
-### 独立 Compose 项目或宿主机工具
-
-如果是另一个独立项目，或者你只是想从宿主机脚本直接调，推荐访问：
+推荐访问：
 
 ```text
 http://localhost:18000/v1/audio/transcriptions
 ```
 
-如果调用方运行在另一个 Docker 容器里，常见写法是：
+另一个 Docker 容器里常见写法：
 
 ```text
 http://host.docker.internal:18000/v1/audio/transcriptions
 ```
-
-## 🌐 浏览器为什么走 18080
-
-浏览器端优先走：
-
-```text
-http://localhost:18080/
-```
-
-这是因为：
-
-- 页面和识别接口保持同源
-- 不需要额外处理跨域
-- 用户只记一个主入口即可
-
-也就是说：
-
-- `18080` 更适合“人打开网页使用”
-- `18000` 更适合“程序或其他容器直接调用”
 
 ## 🛠️ 环境变量
 
@@ -223,14 +175,14 @@ http://localhost:18080/
 
 - [.env.example](/Users/andy/Code/cut-funasr-bundle/.env.example)
 
-当前支持的主要变量：
+主要变量：
 
 - `CUT_HTTP_PORT`
-  默认前端统一入口端口，默认值 `18080`
+  浏览器统一入口端口，默认 `18080`
 - `FUNASR_HTTP_PORT`
-  默认后端直连端口，默认值 `18000`
-- `SUITE_FRONTEND_IMAGE`
-  整合版前端镜像名
+  后端直连端口，默认 `18000`
+- `VIDEO_CUTER_FULL_IMAGE`
+  完整版前端镜像名
 - `FUNASR_IMAGE`
   后端镜像名
 - `GATEWAY_IMAGE`
@@ -238,7 +190,7 @@ http://localhost:18080/
 
 ## 🧪 本地开发模式
 
-如果你正在本地同时开发三个仓库，可以使用开发覆盖文件：
+如果你正在本地同时开发三个仓库：
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
@@ -246,34 +198,9 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 这个模式会：
 
-- 从 `./suite-frontend` 构建整合版前端
+- 从 `../cut/full` 构建完整版前端
 - 从 `../yunyinshibie` 构建 `funasr-server`
 - 从当前仓库构建 `gateway`
-
-适合本地联调，不适合最终用户部署。
-
-相关文件：
-
-- [docker-compose.dev.yml](/Users/andy/Code/cut-funasr-bundle/docker-compose.dev.yml)
-
-## 🩺 健康检查与排障
-
-常用检查地址：
-
-- `http://localhost:18080/`
-- `http://localhost:18080/healthz`
-- `http://localhost:18080/v1/audio/transcriptions`
-- `http://localhost:18000/healthz`
-- `http://localhost:18000/v1/audio/transcriptions`
-
-常见问题排查：
-
-1. 首次启动耗时较久
-   通常是后端正在下载模型，尤其是第一次启动。
-2. 前端能打开但识别失败
-   优先检查 `asr` 容器日志，以及模型目录是否完整。
-3. 其他容器无法访问识别服务
-   先确认是同 Compose 网络直连，还是通过宿主机端口访问，两种地址不同。
 
 ## 📁 关键文件
 
@@ -282,42 +209,37 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 - [docker-compose.local-model.yml](/Users/andy/Code/cut-funasr-bundle/docker-compose.local-model.yml)
   本地模型挂载覆盖
 - [docker-compose.dev.yml](/Users/andy/Code/cut-funasr-bundle/docker-compose.dev.yml)
-  本地开发构建覆盖
+  本地开发覆盖
 - [Dockerfile](/Users/andy/Code/cut-funasr-bundle/Dockerfile)
   gateway 镜像构建
 - [Caddyfile](/Users/andy/Code/cut-funasr-bundle/Caddyfile)
-  gateway 路由与同源代理规则
-- [suite-frontend](/Users/andy/Code/cut-funasr-bundle/suite-frontend)
-  整合版前端源码与测试
+  gateway 路由规则
 
 ## 🤖 Docker Hub 自动发布
 
-本仓库包含统一发布工作流：
+工作流见：
 
 - [.github/workflows/dockerhub.yml](/Users/andy/Code/cut-funasr-bundle/.github/workflows/dockerhub.yml)
 
-它会在 `main` 更新或手动触发时统一构建并推送：
+当前会发布：
 
-- `video-cuter-suite-web`
+- `video-cuter-full`
 - `funasr-server`
 - `video-cuter-suite-gateway`
 
-默认需要在 GitHub 仓库中配置：
+默认需要：
 
 - `DOCKERHUB_USERNAME`
 - `DOCKERHUB_TOKEN`
 
-如果被拉取的源码仓库未来改成私有仓库，再额外补充：
-
-- `GH_PAT`
-
 ## ✅ 适合谁
 
-这个仓库适合下面三类用户：
+这个仓库适合：
 
-- 想一条命令启动整套前后端能力的用户
-- 想通过浏览器直接使用视频处理工具，同时接入识别服务的用户
-- 想把识别能力暴露给其他容器、脚本或业务系统复用的用户
+- 想一条命令启动完整前后端体验的用户
+- 想通过浏览器直接使用完整版视频处理工具的用户
+- 想把识别能力暴露给其他容器或脚本复用的用户
 
-如果你追求的是最小职责边界，请分别使用独立的 `video-cuter` 与 `funasr-server` 仓库。  
-如果你要的是完整体验和最低部署门槛，优先使用这个整合仓库。
+如果你想改前端源码，请去 `video-cuter`。  
+如果你想改后端识别服务，请去 `funasr-server`。  
+如果你只想部署整套服务，就使用这个仓库。
