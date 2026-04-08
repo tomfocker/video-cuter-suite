@@ -22,12 +22,6 @@ jobs:
         with:
           path: bundle
 
-      - name: Checkout video-cuter repo
-        uses: actions/checkout@v4
-        with:
-          repository: tomfocker/video-cuter
-          path: video-cuter
-
       - name: Checkout funasr-server repo
         uses: actions/checkout@v4
         with:
@@ -43,11 +37,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Metadata for video-cuter
+      - name: Metadata for suite frontend
         id: meta_frontend
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKERHUB_NAMESPACE }}/video-cuter
+          images: ${{ env.DOCKERHUB_NAMESPACE }}/video-cuter-suite-web
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha
@@ -70,11 +64,11 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha
 
-      - name: Build and push video-cuter
+      - name: Build and push suite frontend
         uses: docker/build-push-action@v6
         with:
-          context: ./video-cuter
-          file: ./video-cuter/Dockerfile
+          context: ./bundle/suite-frontend
+          file: ./bundle/suite-frontend/Dockerfile
           push: true
           tags: ${{ steps.meta_frontend.outputs.tags }}
           labels: ${{ steps.meta_frontend.outputs.labels }}

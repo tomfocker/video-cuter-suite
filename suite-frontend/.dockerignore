@@ -1,0 +1,7 @@
+.git
+.gitignore
+node_modules
+tests
+docs
+*.log
+cut.code-workspace

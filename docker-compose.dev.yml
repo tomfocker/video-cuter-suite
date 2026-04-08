@@ -8,9 +8,9 @@ services:
 
   frontend:
     build:
-      context: ../cut
+      context: ./suite-frontend
       dockerfile: Dockerfile
-    image: videocuter-web:bundle-dev
+    image: video-cuter-suite-web:bundle-dev
     pull_policy: never
 
   gateway:

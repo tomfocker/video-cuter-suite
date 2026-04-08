@@ -2,7 +2,7 @@
 
 一个面向最终用户的整合发布仓库，目标是把下面三部分组合成真正开箱即用的一套服务：
 
-- `video-cuter`：浏览器端视频裁剪与处理工具
+- `video-cuter-suite-web`：带识别/字幕/文字选区能力的整合版前端
 - `funasr-server`：独立运行的 FunASR HTTP 识别服务
 - `gateway`：统一入口、同源代理、容器互联出口
 
@@ -15,9 +15,16 @@
 1. 提供一份可以直接启动的 `docker compose` 配置
 2. 统一发布整套镜像到 Docker Hub
 
-如果你只想维护前端，请去 `video-cuter` 仓库。  
+如果你只想维护纯前端剪辑能力，请去 `video-cuter` 仓库。  
 如果你只想维护语音识别服务，请去 `funasr-server` 仓库。  
 如果你想一条命令把完整体验跑起来，用这个仓库就对了。
+
+这里还有一个重要区别：
+
+- `video-cuter` 仓库保持纯前端、纯浏览器能力
+- 本仓库内置 `suite-frontend`，专门恢复整合版所需的识别、字幕下载、文字选区裁剪等能力
+
+这样可以同时兼顾“职责边界清晰”和“整合版体验完整”。
 
 ## 🧩 为什么默认保留 gateway
 
@@ -91,7 +98,7 @@ services:
       - ./.docker-data/asr:/data
 
   frontend:
-    image: tomfocker/video-cuter:latest
+    image: tomfocker/video-cuter-suite-web:latest
     restart: unless-stopped
     expose:
       - "8000"
@@ -222,8 +229,8 @@ http://localhost:18080/
   默认前端统一入口端口，默认值 `18080`
 - `FUNASR_HTTP_PORT`
   默认后端直连端口，默认值 `18000`
-- `VIDEO_CUTER_IMAGE`
-  前端镜像名
+- `SUITE_FRONTEND_IMAGE`
+  整合版前端镜像名
 - `FUNASR_IMAGE`
   后端镜像名
 - `GATEWAY_IMAGE`
@@ -239,7 +246,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 这个模式会：
 
-- 从 `../cut` 构建 `video-cuter`
+- 从 `./suite-frontend` 构建整合版前端
 - 从 `../yunyinshibie` 构建 `funasr-server`
 - 从当前仓库构建 `gateway`
 
@@ -280,6 +287,8 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
   gateway 镜像构建
 - [Caddyfile](/Users/andy/Code/cut-funasr-bundle/Caddyfile)
   gateway 路由与同源代理规则
+- [suite-frontend](/Users/andy/Code/cut-funasr-bundle/suite-frontend)
+  整合版前端源码与测试
 
 ## 🤖 Docker Hub 自动发布
 
@@ -289,7 +298,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 它会在 `main` 更新或手动触发时统一构建并推送：
 
-- `video-cuter`
+- `video-cuter-suite-web`
 - `funasr-server`
 - `video-cuter-suite-gateway`
 

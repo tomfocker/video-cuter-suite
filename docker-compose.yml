@@ -22,7 +22,7 @@ services:
       start_period: 15s
 
   frontend:
-    image: ${VIDEO_CUTER_IMAGE:-tomfocker/video-cuter:latest}
+    image: ${SUITE_FRONTEND_IMAGE:-tomfocker/video-cuter-suite-web:latest}
     pull_policy: always
     restart: unless-stopped
     expose:
