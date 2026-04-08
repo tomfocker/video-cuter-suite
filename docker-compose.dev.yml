@@ -1,14 +1,14 @@
 services:
   asr:
     build:
-      context: ../yunyinshibie
+      context: ../funasr-server
       dockerfile: Dockerfile
     image: funasr-server:bundle-dev
     pull_policy: never
 
   frontend:
     build:
-      context: ../cut/full
+      context: ../video-cuter/full
       dockerfile: Dockerfile
     image: video-cuter-full:bundle-dev
     pull_policy: never

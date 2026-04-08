@@ -173,7 +173,7 @@ http://host.docker.internal:18000/v1/audio/transcriptions
 
 默认示例见：
 
-- [.env.example](/Users/andy/Code/cut-funasr-bundle/.env.example)
+- [.env.example](/Users/andy/Code/video-cuter-suite/.env.example)
 
 主要变量：
 
@@ -198,28 +198,28 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 这个模式会：
 
-- 从 `../cut/full` 构建完整版前端
-- 从 `../yunyinshibie` 构建 `funasr-server`
+- 从 `../video-cuter/full` 构建完整版前端
+- 从 `../funasr-server` 构建 `funasr-server`
 - 从当前仓库构建 `gateway`
 
 ## 📁 关键文件
 
-- [docker-compose.yml](/Users/andy/Code/cut-funasr-bundle/docker-compose.yml)
+- [docker-compose.yml](/Users/andy/Code/video-cuter-suite/docker-compose.yml)
   默认生产部署入口
-- [docker-compose.local-model.yml](/Users/andy/Code/cut-funasr-bundle/docker-compose.local-model.yml)
+- [docker-compose.local-model.yml](/Users/andy/Code/video-cuter-suite/docker-compose.local-model.yml)
   本地模型挂载覆盖
-- [docker-compose.dev.yml](/Users/andy/Code/cut-funasr-bundle/docker-compose.dev.yml)
+- [docker-compose.dev.yml](/Users/andy/Code/video-cuter-suite/docker-compose.dev.yml)
   本地开发覆盖
-- [Dockerfile](/Users/andy/Code/cut-funasr-bundle/Dockerfile)
+- [Dockerfile](/Users/andy/Code/video-cuter-suite/Dockerfile)
   gateway 镜像构建
-- [Caddyfile](/Users/andy/Code/cut-funasr-bundle/Caddyfile)
+- [Caddyfile](/Users/andy/Code/video-cuter-suite/Caddyfile)
   gateway 路由规则
 
 ## 🤖 Docker Hub 自动发布
 
 工作流见：
 
-- [.github/workflows/dockerhub.yml](/Users/andy/Code/cut-funasr-bundle/.github/workflows/dockerhub.yml)
+- [.github/workflows/dockerhub.yml](/Users/andy/Code/video-cuter-suite/.github/workflows/dockerhub.yml)
 
 当前会发布：
 
