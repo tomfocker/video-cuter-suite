@@ -223,9 +223,13 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 当前会发布：
 
-- `video-cuter-full`
-- `funasr-server`
 - `video-cuter-suite-gateway`
+
+前端与后端镜像的发布职责已经回归各自源码仓库：
+
+- `video-cuter` 负责发布 `video-cuter` 与 `video-cuter-full`
+- `funasr-server` 负责发布 `funasr-server`
+- `video-cuter-suite` 只负责发布 `video-cuter-suite-gateway`
 
 默认需要：
 
