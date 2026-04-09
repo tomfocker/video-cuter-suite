@@ -45,7 +45,7 @@ Browser
   v
 gateway (:18080 / :18000)
   |                |
-  |                +--> asr (:8000)
+  |                +--> asr upstream (default: asr:8000)
   |
   +--> frontend (:8000)
 ```
@@ -181,12 +181,30 @@ http://host.docker.internal:18000/v1/audio/transcriptions
   浏览器统一入口端口，默认 `18080`
 - `FUNASR_HTTP_PORT`
   后端直连端口，默认 `18000`
+- `CUT_SUITE_ASR_UPSTREAM`
+  gateway 反向代理到识别服务时使用的上游地址，默认 `asr:8000`
 - `VIDEO_CUTER_FULL_IMAGE`
   完整版前端镜像名
 - `FUNASR_IMAGE`
   后端镜像名
 - `GATEWAY_IMAGE`
   gateway 镜像名
+
+如果你的云端不是直接用 `docker compose.yml` 里的 `asr` 服务名，或者识别服务是单独部署的，记得把：
+
+```bash
+CUT_SUITE_ASR_UPSTREAM=你的识别服务地址:端口
+```
+
+写进 `.env`。常见例子：
+
+```bash
+CUT_SUITE_ASR_UPSTREAM=funasr-server:8000
+```
+
+```bash
+CUT_SUITE_ASR_UPSTREAM=host.docker.internal:18000
+```
 
 ## 🧪 本地开发模式
 

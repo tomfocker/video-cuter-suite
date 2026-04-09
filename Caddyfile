@@ -2,19 +2,19 @@
   encode gzip
 
   handle_path /api/asr/* {
-    reverse_proxy asr:8000
+    reverse_proxy {$CUT_SUITE_ASR_UPSTREAM:asr:8000}
   }
 
   handle /healthz {
-    reverse_proxy asr:8000
+    reverse_proxy {$CUT_SUITE_ASR_UPSTREAM:asr:8000}
   }
 
   handle /v1/audio/transcriptions {
-    reverse_proxy asr:8000
+    reverse_proxy {$CUT_SUITE_ASR_UPSTREAM:asr:8000}
   }
 
   handle /api/transcriptions {
-    reverse_proxy asr:8000
+    reverse_proxy {$CUT_SUITE_ASR_UPSTREAM:asr:8000}
   }
 
   handle {
@@ -24,5 +24,5 @@
 
 :18000 {
   encode gzip
-  reverse_proxy asr:8000
+  reverse_proxy {$CUT_SUITE_ASR_UPSTREAM:asr:8000}
 }

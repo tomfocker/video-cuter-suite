@@ -38,6 +38,8 @@ services:
     image: ${GATEWAY_IMAGE:-tomfocker/video-cuter-suite-gateway:latest}
     pull_policy: always
     restart: unless-stopped
+    environment:
+      CUT_SUITE_ASR_UPSTREAM: ${CUT_SUITE_ASR_UPSTREAM:-asr:8000}
     depends_on:
       asr:
         condition: service_healthy
