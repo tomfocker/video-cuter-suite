@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "$(dirname "$0")/common.sh"
+
+require_local_repos
+print_workspace_summary
+print_info "Tailing local source stack logs..."
+run_compose logs -f "$@"

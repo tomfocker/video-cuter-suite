@@ -202,6 +202,32 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 - 从 `../funasr-server` 构建 `funasr-server`
 - 从当前仓库构建 `gateway`
 
+推荐把这个仓库当作唯一的本地开发入口。三个仓库保持同级目录时：
+
+```text
+Code/
+  video-cuter/
+  funasr-server/
+  video-cuter-suite/
+```
+
+可以直接在 `video-cuter-suite` 里执行：
+
+```bash
+./scripts/dev-up
+```
+
+常用命令：
+
+```bash
+./scripts/dev-up
+./scripts/dev-logs
+./scripts/dev-check
+./scripts/dev-down
+```
+
+这几条命令会统一使用当前仓库的 `docker-compose.yml` + `docker-compose.dev.yml`，并默认引用同级的前端、后端源码仓库。以后如果要排查联调问题，默认先进入 `video-cuter-suite` 再动手。
+
 ## 📁 关键文件
 
 - [docker-compose.yml](/Users/andy/Code/video-cuter-suite/docker-compose.yml)

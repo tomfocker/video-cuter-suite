@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "$(dirname "$0")/common.sh"
+
+require_local_repos
+print_workspace_summary
+print_info "Checking local source stack status..."
+run_compose ps
+
+probe_url "Gateway health" "${CUT_SUITE_GATEWAY_HEALTH_URL:-http://127.0.0.1:18080/healthz}" "${CUT_SUITE_GATEWAY_HEALTH_RETRIES:-5}" "${CUT_SUITE_GATEWAY_HEALTH_RETRY_DELAY:-2}"
+probe_url "ASR direct health" "${CUT_SUITE_ASR_HEALTH_URL:-http://127.0.0.1:18000/healthz}" "${CUT_SUITE_ASR_HEALTH_RETRIES:-3}" "${CUT_SUITE_ASR_HEALTH_RETRY_DELAY:-1}"
