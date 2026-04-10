@@ -1,19 +1,19 @@
 services:
-  asr:
+  funasr-server:
     build:
       context: ../funasr-server
       dockerfile: Dockerfile
     image: funasr-server:bundle-dev
     pull_policy: never
 
-  frontend:
+  video-cuter-full:
     build:
       context: ../video-cuter/full
       dockerfile: Dockerfile
     image: video-cuter-full:bundle-dev
     pull_policy: never
 
-  gateway:
+  video-cuter-suite-gateway:
     build:
       context: .
       dockerfile: Dockerfile

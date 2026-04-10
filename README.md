@@ -45,9 +45,9 @@ Browser
   v
 gateway (:18080 / :18000)
   |                |
-  |                +--> asr upstream (default: asr:8000)
+  |                +--> asr upstream (default: funasr-server:8000)
   |
-  +--> frontend (:8000)
+  +--> frontend upstream (default: video-cuter-full:8000)
 ```
 
 路由说明：
@@ -80,7 +80,7 @@ docker compose up -d
 
 ```yaml
 services:
-  asr:
+  funasr-server:
     image: tomfocker/funasr-server:latest
     restart: unless-stopped
     expose:
@@ -89,24 +89,27 @@ services:
       CW_HOST: 0.0.0.0
       CW_PORT: 8000
       CW_DATA_DIR: /data
-      CW_AUTO_DOWNLOAD_MODEL: "1"
+      CW_AUTO_DOWNLOAD_MODEL: "0"
       CW_VULKAN_ENABLE: "0"
       CW_DML_ENABLE: "0"
     volumes:
       - ./.docker-data/asr:/data
 
-  frontend:
+  video-cuter-full:
     image: tomfocker/video-cuter-full:latest
     restart: unless-stopped
     expose:
       - "8000"
 
-  gateway:
+  video-cuter-suite-gateway:
     image: tomfocker/video-cuter-suite-gateway:latest
     restart: unless-stopped
+    environment:
+      CUT_SUITE_ASR_UPSTREAM: funasr-server:8000
+      CUT_SUITE_FRONTEND_UPSTREAM: video-cuter-full:8000
     depends_on:
-      - asr
-      - frontend
+      - funasr-server
+      - video-cuter-full
     ports:
       - "18080:8080"
       - "18000:18000"
@@ -116,15 +119,14 @@ services:
 
 默认推荐：
 
-- 镜像不内置模型
-- 第一次启动自动下载
+- 镜像内置 `Fun-ASR-Nano-GGUF`
 - 模型持久化保存在 `./.docker-data/asr/`
 
 优点：
 
-- 镜像更轻
-- 拉取更快
-- 升级服务时不用重复搬运模型
+- 首次启动不依赖外网下载模型
+- 云端部署更稳定
+- 避免运行时模型下载失败导致容器退出
 
 当前默认只围绕单模型：
 
@@ -152,7 +154,7 @@ docker compose -f docker-compose.yml -f docker-compose.local-model.yml up -d
 推荐直接访问：
 
 ```text
-http://asr:8000/v1/audio/transcriptions
+http://funasr-server:8000/v1/audio/transcriptions
 ```
 
 ### 宿主机或独立 Compose 项目
@@ -182,7 +184,9 @@ http://host.docker.internal:18000/v1/audio/transcriptions
 - `FUNASR_HTTP_PORT`
   后端直连端口，默认 `18000`
 - `CUT_SUITE_ASR_UPSTREAM`
-  gateway 反向代理到识别服务时使用的上游地址，默认 `asr:8000`
+  gateway 反向代理到识别服务时使用的上游地址，默认 `funasr-server:8000`
+- `CUT_SUITE_FRONTEND_UPSTREAM`
+  gateway 反向代理到完整版前端时使用的上游地址，默认 `video-cuter-full:8000`
 - `VIDEO_CUTER_FULL_IMAGE`
   完整版前端镜像名
 - `FUNASR_IMAGE`
@@ -190,7 +194,7 @@ http://host.docker.internal:18000/v1/audio/transcriptions
 - `GATEWAY_IMAGE`
   gateway 镜像名
 
-如果你的云端不是直接用 `docker compose.yml` 里的 `asr` 服务名，或者识别服务是单独部署的，记得把：
+如果你的云端不是直接用 `docker compose.yml` 里的 `funasr-server` 服务名，或者识别服务是单独部署的，记得把：
 
 ```bash
 CUT_SUITE_ASR_UPSTREAM=你的识别服务地址:端口

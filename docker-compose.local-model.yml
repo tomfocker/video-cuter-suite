@@ -1,9 +1,8 @@
 services:
-  asr:
+  funasr-server:
     environment:
       CW_AUTO_DOWNLOAD_MODEL: "0"
       CW_MODEL_DIR: /models/Fun-ASR-Nano-GGUF
     volumes:
       - ./.docker-data/asr:/data
       - ./models/Fun-ASR-Nano-GGUF:/models/Fun-ASR-Nano-GGUF:ro
-
